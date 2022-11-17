@@ -1,6 +1,7 @@
 from math import *
 from numpy import arange
 from sympy import diff
+import sys
 
 
 def dichotomy():
@@ -62,7 +63,6 @@ def fixedpoint():
     g1 = str(diff(g))  # g'(x)
     t = ""  # variable to check if you have "n" or not
     n = 0  # starting value of "n" to avoid error in line 87
-    g1_p_values = []  # list for |g(x)| values
 
     def function(x):
         return eval(g.replace("X", str(x)))  # g(x)
@@ -72,15 +72,17 @@ def fixedpoint():
 
     for xvalues in arange(a, b, 0.0001):  # all the possible values of x from a to b
         if not a < function(xvalues) < b:  # if f [a,b] is in [a,b] 1st condition
-            print("\nerror : f [" + str(a) + " , " + str(b) + "] is not in [" + str(a) + " , " + str(b) + "]")
+            print("\nerror : g [" + str(a) + " , " + str(b) + "] is not in [" + str(a) + " , " + str(b) + "]")
             fixedpoint()
 
-    for xvalues in arange(a, b, 0.0001):  # adding |g(x)| values to g1_p_values
-        if function1(xvalues) > 0:
-            g1_p_values.append(function1(xvalues))
-        else:
-            g1_p_values.append(-function1(xvalues))
-    k = max(g1_p_values)  # max of g'(x)
+    def g1_positive_value(function1):
+        for xvalues in arange(a, b, 0.0001):  # adding |g(x)| values to g1_p_values
+            if function1(xvalues) > 0:
+                yield function1(xvalues)
+            else:
+                yield -function1(xvalues)
+
+    k = max(g1_positive_value(function1))  # max of g'(x)
     if not 0 < k < 1:  # condition 2
         print("error : k =", k)
         fixedpoint()
@@ -92,11 +94,13 @@ def fixedpoint():
         elif t == "ep":
             ep = input("enter epsilon : ")
             ep = eval(str("pow(" + str(ep.replace("^", ",")) + ")"))  # calculating a^b
-            n = ceil(log((ep * (1 - k)) / abs(x1 - x0), exp(1)) / log(k, exp(1))) + 1  # finding n
+            n = floor(log((ep * (1 - k)) / abs(x1 - x0), exp(1)) / log(k, exp(1))) + 1  # finding n
             print("n = ", n)
     for i in range(n):  # main loop for calculating the answer
         x1 = function(x0)
+        print(f"xn({i+1}) = {x0}")
         x0 = x1
+        print(f"xn+1({i + 1}) = {x0}\n")
     print(
         "1) g[" + str(a) + " , " + str(b) + "] ∈ [" + str(a) + " , " + str(b) + "]\n2) k = " + str(
             k) + "\n solution = " + str(
@@ -108,8 +112,6 @@ def newtonraphson():
     a, b, f, ep, x0 = float(input("\nenter a: ")), float(input("enter b: ")), input("enter f(x) : "), str(
         input("enter epsilon : ")), float(input("enter x0 : "))
     ep = eval(str("pow(" + str(ep.replace("^", ",")) + ")"))  # calculating a^b
-    signs1 = []  # values of f'(x)
-    signs2 = []  # values of f"(x)
     f1 = str(diff(f))  # f'
     f2 = str(diff(diff(f)))  # f"
     xn1 = x0
@@ -139,13 +141,7 @@ def newtonraphson():
         if -0.01 < function2(xvalues) < 0.01:  # if f"(x) = 0 2nd condition
             print("\nerror : f\"(" + str(round(xvalues, 1)) + ") = 0 ")
             newtonraphson()
-    for xs in arange(a, b, 0.001):
-        signs1.append(function1(xs))  # adding the values of f'(x) to the 1st list
-        signs2.append(function2(xs))  # adding the values of f"(x) to the 2nd list
-    if not ((all(item > 0 for item in signs1) or all(item < 0 for item in signs1)) and (
-            all(item2 > 0 for item2 in signs2) or all(item2 < 0 for item2 in signs2))):  # 2nd condition
-        print("error : the derivatives changed their signs")
-        newtonraphson()  # useless lines 85 to 91
+
     if function(x0) * function2(x0) <= 0:  # 3rd condition
         print("error : f(x0) * f\"(x0) = " + str(function(x0) * function2(x0)) + " <= 0")
         newtonraphson()
@@ -160,8 +156,7 @@ def newtonraphson():
         function(a) * function(
             b)) + " <= 0\n2) f'(x) and f\"(x) ‡ 0 and don't change their sign\n3) f(x0) * f\"(x0) = " + str(
         function(x0) * function2(x0)) + " > 0\nthe solution : " + str(xn1))
-
-    return 0
+    sys.exit()
 
 
 def secant():
@@ -214,11 +209,12 @@ def secant():
 choice = ""
 while choice != "1" and choice != "2" and choice != "3" and choice != "4":
     choice = input("1)Dichotomy\n2)Fixed point\n3)Newton-Raphson\n4)Secant\n\nChoose a method : ")
-    if choice == "1":
-        dichotomy()
-    elif choice == "2":
-        fixedpoint()
-    elif choice == "3":
-        newtonraphson()
-    elif choice == '4':
-        secant()
+    match choice:
+        case "1":
+            dichotomy()
+        case "2":
+            fixedpoint()
+        case "3":
+            newtonraphson()
+        case "4":
+            secant()
